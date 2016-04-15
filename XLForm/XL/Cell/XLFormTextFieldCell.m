@@ -34,6 +34,7 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
 @interface XLFormTextFieldCell() <UITextFieldDelegate>
 
 @property NSMutableArray * dynamicCustomConstraints;
+@property NSNumberFormatter *numberFormatter;
 
 @end
 
@@ -62,6 +63,10 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
     if (self) {
         _returnKeyType = UIReturnKeyDefault;
         _nextReturnKeyType = UIReturnKeyNext;
+        
+        _numberFormatter = [[NSNumberFormatter alloc] init];
+        [_numberFormatter setLocale:[NSLocale currentLocale]];
+        [_numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
     }
     return self;
 }
@@ -289,7 +294,7 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
 - (void)textFieldDidChange:(UITextField *)textField{
     if([self.textField.text length] > 0) {
         if ([self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeNumber] || [self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeDecimal]){
-            self.rowDescriptor.value =  @([self.textField.text doubleValue]);
+            self.rowDescriptor.value =  [self.numberFormatter numberFromString:self.textField.text];
         } else if ([self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeInteger]){
             self.rowDescriptor.value = @([self.textField.text integerValue]);
         } else {
