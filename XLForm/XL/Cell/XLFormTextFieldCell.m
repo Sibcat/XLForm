@@ -34,7 +34,6 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
 @interface XLFormTextFieldCell() <UITextFieldDelegate>
 
 @property NSMutableArray * dynamicCustomConstraints;
-@property NSNumberFormatter *numberFormatter;
 
 @end
 
@@ -63,10 +62,6 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
     if (self) {
         _returnKeyType = UIReturnKeyDefault;
         _nextReturnKeyType = UIReturnKeyNext;
-        
-        _numberFormatter = [[NSNumberFormatter alloc] init];
-        [_numberFormatter setLocale:[NSLocale currentLocale]];
-        [_numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
     }
     return self;
 }
@@ -151,9 +146,9 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
         self.textField.autocapitalizationType = UITextAutocapitalizationTypeAllCharacters;
         self.textField.keyboardType = UIKeyboardTypeDefault;
     }
-
+    
     self.textLabel.text = ((self.rowDescriptor.required && self.rowDescriptor.title && self.rowDescriptor.sectionDescriptor.formDescriptor.addAsteriskToRequiredRowsTitle) ? [NSString stringWithFormat:@"%@*", self.rowDescriptor.title] : self.rowDescriptor.title);
-
+    
     self.textField.text = self.rowDescriptor.value ? [self.rowDescriptor.value displayText] : self.rowDescriptor.noValueDisplayText;
     [self.textField setEnabled:!self.rowDescriptor.isDisabled];
     self.textField.textColor = self.rowDescriptor.isDisabled ? [UIColor grayColor] : [UIColor blackColor];
@@ -205,11 +200,11 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
     NSMutableArray * result = [[NSMutableArray alloc] init];
     [self.textLabel setContentHuggingPriority:500 forAxis:UILayoutConstraintAxisHorizontal];
     [self.textLabel setContentCompressionResistancePriority:1000 forAxis:UILayoutConstraintAxisHorizontal];
-
+    
     // Add Constraints
     [result addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=11)-[_textField]-(>=11)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:NSDictionaryOfVariableBindings(_textField)]];
     [result addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=11)-[_textLabel]-(>=11)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:NSDictionaryOfVariableBindings(_textLabel)]];
-
+    
     return result;
 }
 
@@ -235,7 +230,7 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
             self.dynamicCustomConstraints = [NSMutableArray arrayWithArray:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[textField]-|" options:0 metrics:nil views:views]];
         }
     }
-
+    
     [self.dynamicCustomConstraints addObject:[NSLayoutConstraint constraintWithItem:_textField
                                                                           attribute:NSLayoutAttributeWidth
                                                                           relatedBy:self.textFieldLengthPercentage ? NSLayoutRelationEqual : NSLayoutRelationGreaterThanOrEqual
@@ -243,7 +238,7 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
                                                                           attribute:NSLayoutAttributeWidth
                                                                          multiplier:self.textFieldLengthPercentage ? [self.textFieldLengthPercentage floatValue] : 0.3
                                                                            constant:0.0]];
-
+    
     [self.contentView addConstraints:self.dynamicCustomConstraints];
     [super updateConstraints];
 }
@@ -294,7 +289,11 @@ NSString *const XLFormTextFieldLengthPercentage = @"textFieldLengthPercentage";
 - (void)textFieldDidChange:(UITextField *)textField{
     if([self.textField.text length] > 0) {
         if ([self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeNumber] || [self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeDecimal]){
-            self.rowDescriptor.value =  [self.numberFormatter numberFromString:self.textField.text];
+            if ([self.rowDescriptor.value respondsToSelector:@selector(valueFromText:)]) {
+                self.rowDescriptor.value = [self.rowDescriptor.value valueFromText:self.textField.text];
+            } else {
+                self.rowDescriptor.value = @([self.textField.text doubleValue]);
+            }
         } else if ([self.rowDescriptor.rowType isEqualToString:XLFormRowDescriptorTypeInteger]){
             self.rowDescriptor.value = @([self.textField.text integerValue]);
         } else {

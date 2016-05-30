@@ -130,6 +130,9 @@ typedef void(^XLOnChangeBlock)(id __nullable oldValue,id __nullable newValue,XLF
 -(nonnull NSString *)formDisplayText;
 -(nonnull id)formValue;
 
+@optional
+-(nonnull id)valueFromText:(NSString *)text;
+
 @end
 
 @interface XLFormAction : NSObject
